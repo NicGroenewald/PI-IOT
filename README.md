@@ -62,7 +62,8 @@ Pi-IOT transforms your Raspberry Pi into a dedicated smart home control panel. I
 <img width="100%" alt="Dashboard view showing device controls" src="https://github.com/user-attachments/assets/3d6bb55c-7d2d-4f9c-91e6-59dcf9dabcb9" />
 
 ### Responsive Layout
-<img width="100%" alt="Mobile responsive view" src="https://github.com/user-attachments/assets/e288042c-e188-4d4e-9ff2-d9be7379f080" />
+<img width="1537" height="232" alt="image" src="https://github.com/user-attachments/assets/7fb0ce11-65ed-4d87-951b-855c843ea85d" />
+
 
 </div>
 
