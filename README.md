@@ -1,3 +1,4 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # Pi-IOT Smart Home Control System
 
 A modular smart home control system designed to manage Tuya-compatible devices using a Raspberry Pi with a connected touchscreen. The system combines Python-based device control, an MQTT message broker, and a modern React dashboard to provide a responsive, extensible home automation platform.
@@ -96,10 +97,11 @@ Pi-IOT/
 
 ### Prerequisites
 
-- Python 3.8+
-- Node.js 16+
-- Mosquitto MQTT Broker
-- Anaconda/Miniconda (recommended for environment isolation)
+### Prerequisites
+* Python 3.8+ (tested on 3.10)
+* Node.js 16+ (tested on 18.x)
+* Mosquitto MQTT Broker 2.0+
+* Anaconda/Miniconda (recommended)
 
 ### Installation
 
