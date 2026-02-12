@@ -3,6 +3,14 @@
 
 A modular smart home control system designed to manage Tuya-compatible devices using a Raspberry Pi with a connected touchscreen. The system combines Python-based device control, an MQTT message broker, and a modern React dashboard to provide a responsive, extensible home automation platform.
 
+<img width="1917" height="914" alt="image" src="https://github.com/user-attachments/assets/3d6bb55c-7d2d-4f9c-91e6-59dcf9dabcb9" />
+<img width="1541" height="227" alt="image" src="https://github.com/user-attachments/assets/e288042c-e188-4d4e-9ff2-d9be7379f080" />
+
+
+
+ 
+
+
 ## Project Objective
 
 The objective of Pi-IOT is to build a fully local, customizable smart home control system that runs on a Raspberry Pi and serves as a dedicated smart home control panel. The system provides:
@@ -49,26 +57,11 @@ Pi-IOT/
 
 ### Communication Flow
 
-```
-┌─────────────────┐   MQTT    ┌──────────────────┐
-│  Web Dashboard  │◄──────────────────────►│   MQTT Broker    │
-│ (React + MQTT)  │            │   (Mosquitto)    │
-└─────────────────┘            └──────────────────┘
-         ▲                              │
-         │            MQTT              │
-         └────────┴─────────┐           │
-                  │          │           │
-         ┌──────▼──────┐ ┌──────▼──────┐
-         │  Light CLI  │ │   Plug CLI  │
-         │  or Loop    │ │   or Loop   │
-         └──────┬──────┘ └──────┬──────┘
-                │                │
-                │  TinyTuya      │  TinyTuya
-                │                │
-         ┌──────▼──────┐ ┌──────▼──────┐
-         │ Smart Light │ │  Smart Plug │
-         │   (Tuya)    │ │   (Tuya)    │
-         └─────────────┘ └─────────────┘
+```mermaid
+graph LR
+    A[Dashboard] <-->|MQTT| B[Mosquitto]
+    B <-->|MQTT| C[Python Backend]
+    C <-->|TinyTuya| D[Tuya Devices]
 ```
 
 ---
