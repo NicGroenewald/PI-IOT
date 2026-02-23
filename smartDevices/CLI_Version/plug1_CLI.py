@@ -17,6 +17,27 @@ MQTT_BROKER_HOST = "127.0.0.1"
 MQTT_BROKER_PORT = 1883
 MQTT_KEEPALIVE = 60
 
+def live_mode():
+    print("Live mode - publishing every 2 seconds (Press Ctrl+C to stop)")
+    try:
+        while True:
+            dps = get_status()
+            if dps:
+                state = "ON" if dps.get("1", False) else "OFF"
+                power = watts(dps.get("19", 0))
+                voltage = volts(dps.get("20", 0))
+                current = amps(dps.get("18", 0))
+
+                mqtt_client.publish("pi/plug1/state", state)
+                mqtt_client.publish("pi/plug1/power", f"{power:.2f}")
+                mqtt_client.publish("pi/plug1/voltage", f"{voltage:.1f}")
+                mqtt_client.publish("pi/plug1/current", f"{current:.3f}")
+                print(f"{device_name} | {power:.2f}W | {voltage:.1f}V | {current:.3f}A | {state}")
+
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("\nLive mode stopped")
+
 def menu():
     print("\n" + device_name + " Management Hub")
     print("-" * 35)
@@ -217,26 +238,8 @@ def logic():
                 input("Press Enter to continue...")
 
             case 7:  # Live mode
-                print("Live mode - publishing every 2 seconds (Press Ctrl+C to stop)")
-                try:
-                    while True:
-                        dps = get_status()
-                        if dps:
-                            state = "ON" if dps.get("1", False) else "OFF"
-                            power = watts(dps.get("19", 0))
-                            voltage = volts(dps.get("20", 0))
-                            current = amps(dps.get("18", 0))
-                            
-                            mqtt_client.publish("pi/plug1/state", state)
-                            mqtt_client.publish("pi/plug1/power", f"{power:.2f}")
-                            mqtt_client.publish("pi/plug1/voltage", f"{voltage:.1f}")
-                            mqtt_client.publish("pi/plug1/current", f"{current:.3f}")
-                            print(f"{device_name} | {power:.2f}W | {voltage:.1f}V | {current:.3f}A | {state}")
-                        
-                        time.sleep(2)
-                except KeyboardInterrupt:
-                    print("\nLive mode stopped")
-                    input("Press Enter to continue...")
+                live_mode()
+                input("Press Enter to continue...")
 
             case _:
                 print("Invalid choice. Please select 1-7 or Q to quit.")
@@ -255,7 +258,11 @@ def main():
     print(f"Connecting to MQTT at {MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}")
     mqtt_client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT, MQTT_KEEPALIVE)
     mqtt_client.loop_start()
-    logic()
+
+    if "--live" in sys.argv:
+        live_mode()
+    else:
+        logic()
 
 
 if __name__ == "__main__":

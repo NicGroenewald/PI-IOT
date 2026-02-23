@@ -19,6 +19,37 @@ MQTT_BROKER_HOST = "127.0.0.1"
 MQTT_BROKER_PORT = 1883
 MQTT_KEEPALIVE = 60
 
+def live_mode():
+    print("Live mode - publishing every 2 seconds (Press Ctrl+C to stop)")
+    try:
+        while True:
+            dps = get_status()
+            if dps:
+                state = "ON" if dps.get("20", False) else "OFF"
+                mode = dps.get("21", "unknown")
+
+                if mode == 'colour':
+                    raw_color = dps.get("24", "000003e803e8")
+                    _, _, v = decode_hsv_hex(raw_color)
+                    brightness = tuya_to_brightness_percent(v)
+                else:
+                    brightness = tuya_to_brightness_percent(dps.get("22", 10))
+
+                color_temp = dps.get("23", 0)
+                raw_color = dps.get("24", "")
+                color_hex = hsv_to_rgb_hex(raw_color)
+
+                mqtt_client.publish("pi/light1/state", state)
+                mqtt_client.publish("pi/light1/mode", mode)
+                mqtt_client.publish("pi/light1/brightness", str(brightness))
+                mqtt_client.publish("pi/light1/color_temp", str(color_temp))
+                mqtt_client.publish("pi/light1/color", color_hex)
+                print(f"{device_name} | {mode} | {brightness}% | Temp:{color_temp} | {color_hex} | {state}")
+
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("\nLive mode stopped")
+
 def menu():
     print("\n" + device_name + " Management Hub")
     print("-" * 35)
@@ -307,36 +338,8 @@ def logic():
                 input("Press Enter to continue...")
             
             case 8:  # Live mode
-                print("Live mode - publishing every 2 seconds (Press Ctrl+C to stop)")
-                try:
-                    while True:
-                        dps = get_status()
-                        if dps:
-                            state = "ON" if dps.get("20", False) else "OFF"
-                            mode = dps.get("21", "unknown")
-                            
-                            if mode == 'colour':
-                                raw_color = dps.get("24", "000003e803e8")
-                                _, _, v = decode_hsv_hex(raw_color)
-                                brightness = tuya_to_brightness_percent(v)
-                            else:
-                                brightness = tuya_to_brightness_percent(dps.get("22", 10))
-                            
-                            color_temp = dps.get("23", 0)
-                            raw_color = dps.get("24", "")
-                            color_hex = hsv_to_rgb_hex(raw_color)
-                            
-                            mqtt_client.publish("pi/light1/state", state)
-                            mqtt_client.publish("pi/light1/mode", mode)
-                            mqtt_client.publish("pi/light1/brightness", str(brightness))
-                            mqtt_client.publish("pi/light1/color_temp", str(color_temp))
-                            mqtt_client.publish("pi/light1/color", color_hex)
-                            print(f"{device_name} | {mode} | {brightness}% | Temp:{color_temp} | {color_hex} | {state}")
-                        
-                        time.sleep(2)
-                except KeyboardInterrupt:
-                    print("\nLive mode stopped")
-                    input("Press Enter to continue...")
+                live_mode()
+                input("Press Enter to continue...")
             
             case _:
                 print("Invalid choice. Please select 1-8 or Q to quit.")
@@ -355,11 +358,12 @@ def main():
     print(f"Connecting to MQTT at {MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}")
     mqtt_client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT, MQTT_KEEPALIVE)
     mqtt_client.loop_start()
-    logic()
+
+    if "--live" in sys.argv:
+        live_mode()
+    else:
+        logic()
 
 
 if __name__ == "__main__":
     main()
-
-
-
