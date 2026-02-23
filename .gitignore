@@ -1,12 +1,17 @@
 # ------------------------------
 # SECRETS / CONFIG
 # ------------------------------
+# Real config files — contain secrets, never commit
 .env
 .env.*
-!.env.example
-
 devices.json
 **/devices.json
+mosquitto.conf
+
+# Example/template files — safe to commit, keep them
+!.env.example
+!*.example.json
+!mosquitto.conf.example
 
 # ------------------------------
 # NODE / FRONTEND
@@ -96,7 +101,6 @@ desktop.ini
 # ------------------------------
 # MQTT/Mosquitto persistence
 # ------------------------------
-mosquitto.conf
 mosquitto.db
 *.db
 persistence/

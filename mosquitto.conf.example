@@ -1,0 +1,43 @@
+# =============================================================================
+# MOSQUITTO CONFIGURATION — EXAMPLE / TEMPLATE
+# =============================================================================
+# Copy this file to mosquitto.conf before running:
+#   cp mosquitto.conf.example mosquitto.conf   (Linux/macOS)
+#   Copy-Item mosquitto.conf.example mosquitto.conf  (Windows PowerShell)
+#
+# mosquitto.conf is intentionally gitignored and must NEVER be committed.
+#
+# SECURITY NOTICE:
+#   Both listeners are explicitly bound to 127.0.0.1 (loopback only).
+#   This means NOTHING is reachable from your LAN or the internet.
+#   Do NOT change 'bind_address' unless you have a deliberate need to expose
+#   this broker to other machines, and have added authentication.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Standard MQTT listener — used by Python device scripts
+# Port: 1883  |  Bound to: localhost ONLY
+# -----------------------------------------------------------------------------
+listener 1883 127.0.0.1
+protocol mqtt
+
+# Allow unauthenticated connections — SAFE here because the socket is bound
+# to 127.0.0.1 and therefore not reachable from any other machine.
+# If you ever remove the bind_address, set allow_anonymous false and add a
+# password_file instead.
+allow_anonymous true
+
+# -----------------------------------------------------------------------------
+# WebSocket listener — used by the browser dashboard
+# Port: 9001  |  Bound to: localhost ONLY
+# -----------------------------------------------------------------------------
+listener 9001 127.0.0.1
+protocol websockets
+allow_anonymous true
+
+# -----------------------------------------------------------------------------
+# Logging (optional — comment out to silence)
+# -----------------------------------------------------------------------------
+# log_dest file /var/log/mosquitto/mosquitto.log
+# log_type error
+# log_type warning
