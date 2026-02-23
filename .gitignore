@@ -96,6 +96,7 @@ desktop.ini
 # ------------------------------
 # MQTT/Mosquitto persistence
 # ------------------------------
+mosquitto.conf
 mosquitto.db
 *.db
 persistence/
