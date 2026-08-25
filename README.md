@@ -3,7 +3,7 @@
 # Pi-IOT — Local Smart Home Control
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/NicGroenewald/PI-IOT/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/NicGroenewald/PI-IOT/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61dafb.svg)](https://react.dev/)
 
@@ -101,7 +101,7 @@ Pi-IOT/
 │   │   ├── lightHelpers.py           Bulb operations shared by menu and MQTT paths
 │   │   └── plugHelpers.py            Plug operations
 │   └── tests/
-│       └── test_light_control.py     Hardware diagnostic — drives a real bulb (see Limitations)
+│       └── test_light_control.py     Hardware diagnostic — physically toggles a real bulb
 │
 ├── mosquitto.conf.example            ── Broker config template ──  copy to mosquitto.conf
 ├── run.ps1                           Windows launcher: starts all four processes
@@ -129,8 +129,6 @@ Pi-IOT/
 | `paho-mqtt` | **2.x** | The code uses `CallbackAPIVersion.VERSION2`, which does not exist in 1.x. |
 | Node.js | **18+** | Required by Vite 6. |
 | Mosquitto | **1.6+** | Needs per-listener `bind` support. Check with `mosquitto --version`. On older versions see the note in `mosquitto.conf.example`. |
-
-> There is no `requirements.txt` in the repo yet — install the two Python packages explicitly, as shown below.
 
 > **Internet is needed for two things and nothing else:** `npm install` (once), and `index.html` pulling Tailwind from a CDN at page load. Device control itself is fully offline. Swapping the CDN for a local Tailwind build would make the dashboard work with the internet unplugged.
 
@@ -216,9 +214,16 @@ The template needs no edits. It defines two listeners, both bound to `127.0.0.1`
 
 ### 4. Install dependencies
 
-```bash
-pip install tinytuya "paho-mqtt>=2.0"
+Python, from the repo root — a virtualenv is recommended but not required:
 
+```bash
+python -m venv .venv && source .venv/bin/activate    # optional; .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
+
+Then the dashboard:
+
+```bash
 cd simple-dashboard
 npm install
 cd ..
@@ -390,18 +395,15 @@ The fastest way to tell whether a problem is in the frontend, the broker, or the
 
 ## Limitations
 
-Honest list of what doesn't work yet, so nobody wastes an evening on it:
+Design constraints worth knowing before you set this up:
 
-- **Localhost only.** As shipped, the dashboard is reachable only from the machine running the broker. Remote access needs Mosquitto auth + ACL + TLS first.
-- **Two devices, hardcoded.** `devices.json` is read by array index and the topic strings are literals. Adding a third device means a new script (see [above](#using-your-own-devices)), not a config edit.
+- **Localhost only.** The dashboard is reachable only from the machine running the broker. Remote access needs Mosquitto auth + ACL + TLS first — the reasoning is in `mosquitto.conf.example`.
+- **Two devices, hardcoded.** `devices.json` is read by array index and the topic strings are literals. Adding a third device means a new controller script (see [above](#using-your-own-devices)), not a config edit.
 - **`run.ps1` is Windows-only.** No Linux/Pi launcher script exists; run the four commands manually.
-- **No `requirements.txt`.** Python dependencies are installed by hand.
-- **The header refresh button does nothing.** It publishes to `pi/refresh`, which no controller subscribes to. The controllers listen on `pi/light1/refresh` and `pi/plug1/refresh`.
-- **Rename and delete are UI-only.** Both change local React state and are lost on page reload; neither is published or persisted.
-- **The bulb never publishes its name,** so the light card always shows the name hardcoded in `config.js`. The plug does publish its name.
-- **`tests/test_light_control.py` is a hardware diagnostic, not a unit test.** It is not a pytest suite — it connects to a real bulb and physically toggles it, and it expects its own copy of `devices.json` inside `smartDevices/tests/`. There is currently no test coverage of the pure helpers in `utils/`.
-- **Tailwind loads from a CDN,** so the page is unstyled without internet. Device control is unaffected.
-- **Polling, not push.** State refreshes every 2 seconds. Changes made from the physical switch or the vendor app take up to 2s to appear.
+- **Polling, not push.** State refreshes every 2 seconds, so changes made at the physical switch or in the vendor app take up to 2s to appear.
+- **Tailwind loads from a CDN,** so the page is unstyled without internet. Device control itself is unaffected.
+
+Smaller known bugs and rough edges are tracked in [Issues](https://github.com/NicGroenewald/PI-IOT/issues).
 
 ---
 
@@ -428,18 +430,21 @@ If a key ever does reach a commit: **rotate it first** (re-run the TinyTuya wiza
 
 ## Screenshots
 
-<div align="center">
-
 ### Dashboard
 
-<!-- Additional screenshots go in docs/images/ and are referenced as ![alt](docs/images/name.png) -->
-<img width="100%" alt="Pi-IOT dashboard showing a smart plug card with live power telemetry and a smart light card with brightness, white-temperature and RGB controls" src="https://github.com/user-attachments/assets/3d6bb55c-7d2d-4f9c-91e6-59dcf9dabcb9" />
+Smart plug card with live power telemetry, and smart light card with brightness,
+white-temperature and RGB controls.
 
-### Responsive layout
+![Pi-IOT dashboard: a smart plug card showing power, voltage and current readings beside a smart light card with brightness, white-temperature and RGB colour controls](images/dashboard.png)
 
-<img width="100%" alt="Dashboard reflowing to a single column on a narrow viewport" src="https://github.com/user-attachments/assets/7fb0ce11-65ed-4d87-951b-855c843ea85d" />
+### Interactive CLI
 
-</div>
+Each controller also runs standalone, without the dashboard or the browser —
+useful for bringing a new device up before any of the frontend is involved.
+
+![Two terminal windows side by side showing the bulb and plug management menus, both connected to the MQTT broker](images/cli-menus.png)
+
+<!-- Screenshots live in images/ and are referenced as ![alt](images/name.png) -->
 
 ---
 
