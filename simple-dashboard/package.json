@@ -1,7 +1,7 @@
 {
   "name": "simple-dashboard",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Beginner-friendly smart home dashboard - easy to modify!",
   "scripts": {

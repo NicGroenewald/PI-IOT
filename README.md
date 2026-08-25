@@ -3,7 +3,7 @@
 # Pi-IOT — Local Smart Home Control
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/NicGroenewald/PI-IOT/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/NicGroenewald/PI-IOT/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61dafb.svg)](https://react.dev/)
 
