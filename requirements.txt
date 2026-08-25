@@ -1,0 +1,13 @@
+# Pi-IOT Python dependencies
+#   pip install -r requirements.txt
+#
+# Run from smartDevices/CLI_Version/ — the controllers load devices.json
+# from the current working directory.
+
+# Local Tuya LAN protocol — talks to the devices without the vendor cloud.
+tinytuya
+
+# MQTT client. 2.0 is a hard floor: the controllers construct their client as
+# mqtt.Client(mqtt.CallbackAPIVersion.VERSION2), and CallbackAPIVersion does
+# not exist in paho-mqtt 1.x — it fails at import with an AttributeError.
+paho-mqtt>=2.0
