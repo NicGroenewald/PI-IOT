@@ -1,6 +1,6 @@
 # Pi-IOT Run Script
 # Starts Mosquitto, Smart Plug, Smart Light (live mode), and the dashboard dev server.
-# Uses $PSScriptRoot — no machine-specific paths needed.
+# Uses $PSScriptRoot -- no machine-specific paths needed.
 
 $rootDir    = $PSScriptRoot
 $cliDir     = Join-Path $rootDir "smartDevices\CLI_Version"
@@ -65,10 +65,36 @@ $mosq = Get-Command mosquitto -ErrorAction SilentlyContinue
 if ($mosq) {
     Start-Process powershell -ArgumentList "-NoExit", "-Command", `
         "Write-Host 'Mosquitto MQTT Broker' -ForegroundColor Cyan; mosquitto -c '$mqttConf' -v"
-    Write-Host "[OK] Mosquitto started (bound to 127.0.0.1 only)." -ForegroundColor Green
+    Write-Host "[OK] Mosquitto started (127.0.0.1 only)." -ForegroundColor Green
     Start-Sleep -Seconds 2
+
+    # ------------------------------------------------------------------
+    # SECURITY GUARD: verify Mosquitto is NOT bound to 0.0.0.0 or LAN
+    # Rules:
+    #   - Only inspect LISTENING lines (ignores ESTABLISHED/TIME_WAIT)
+    #   - Port must be followed by whitespace to avoid partial matches
+    #   - ALLOWED: 127.0.0.1:1883  127.0.0.1:9001  [::1]:1883  [::1]:9001
+    #   - BLOCKED: 0.0.0.0:1883  192.168.x.x:1883  :::1883 (all IPv6)
+    # ------------------------------------------------------------------
+    $listenLines = netstat -ano | Where-Object {
+        $_ -match ":(1883|9001)\s" -and $_ -match "LISTENING"
+    }
+    $badBindings = $listenLines | Where-Object {
+        $_ -notmatch "127\.0\.0\.1:(1883|9001)" -and $_ -notmatch "\[::1\]:(1883|9001)"
+    }
+    if ($badBindings) {
+        Write-Host ""
+        Write-Host "[SECURITY ERROR] Mosquitto is listening on a non-localhost address!" -ForegroundColor Red
+        Write-Host "  The following LISTENING bindings are outside loopback:" -ForegroundColor Red
+        $badBindings | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+        Write-Host "  Expected only: 127.0.0.1:1883 / 127.0.0.1:9001 / [::1]:1883 / [::1]:9001" -ForegroundColor Red
+        Write-Host "  Check mosquitto.conf -- every listener directive must include '127.0.0.1'." -ForegroundColor Red
+        Stop-Process -Name mosquitto -ErrorAction SilentlyContinue
+        exit 1
+    }
+    Write-Host "[OK] Binding verified -- all ports LISTENING on loopback only." -ForegroundColor Green
 } else {
-    Write-Host "[WARN] mosquitto not found in PATH — skipping broker start." -ForegroundColor Yellow
+    Write-Host "[WARN] mosquitto not found in PATH -- skipping broker start." -ForegroundColor Yellow
     Write-Host "       Install Mosquitto or start it manually before running devices." -ForegroundColor Yellow
 }
 

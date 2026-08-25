@@ -6,38 +6,63 @@
 #   Copy-Item mosquitto.conf.example mosquitto.conf  (Windows PowerShell)
 #
 # mosquitto.conf is intentionally gitignored and must NEVER be committed.
-#
-# SECURITY NOTICE:
-#   Both listeners are explicitly bound to 127.0.0.1 (loopback only).
-#   This means NOTHING is reachable from your LAN or the internet.
-#   Do NOT change 'bind_address' unless you have a deliberate need to expose
-#   this broker to other machines, and have added authentication.
 # =============================================================================
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !! SECURITY INVARIANT — READ BEFORE EDITING                             !!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+#   Every listener MUST include '127.0.0.1' in the listener directive.
+#   This binds the socket to loopback ONLY — nothing is reachable from
+#   your LAN or the internet.
+#
+#   DO NOT remove 127.0.0.1 from any listener unless you ALSO:
+#     1. Set:   allow_anonymous false
+#     2. Add:   password_file /path/to/passwd
+#     3. Add:   acl_file /path/to/acl
+#     4. Enable TLS:  certfile / keyfile / cafile
+#
+#   Removing the bind without doing all four exposes your physical
+#   devices to anyone on your network with no authentication.
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+# MOSQUITTO VERSION NOTE:
+#   Modern (1.6+): Use 'listener <port> <ip>' as shown below.
+#   Legacy (<1.6): Use a top-level 'bind_address 127.0.0.1' directive instead.
+#                  IMPORTANT: bind_address applies globally to ALL listeners,
+#                  so a single directive protects both ports. However, you
+#                  cannot have separate bind addresses per listener with this
+#                  approach. Prefer upgrading to 1.6+ where possible.
+#   Check your version: mosquitto --version
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# per_listener_settings true — auth/ACL settings apply only to the listener
+# they are declared under. Prevents config bleed if you later add a
+# password_file to one listener but not the other.
+per_listener_settings true
 
 # -----------------------------------------------------------------------------
 # Standard MQTT listener — used by Python device scripts
-# Port: 1883  |  Bound to: localhost ONLY
+# Port: 1883  |  Bound to: 127.0.0.1 ONLY
 # -----------------------------------------------------------------------------
 listener 1883 127.0.0.1
 protocol mqtt
-
-# Allow unauthenticated connections — SAFE here because the socket is bound
-# to 127.0.0.1 and therefore not reachable from any other machine.
-# If you ever remove the bind_address, set allow_anonymous false and add a
-# password_file instead.
+# Safe because socket is loopback-only. If you remove the bind, also set
+# allow_anonymous false and add a password_file.
 allow_anonymous true
 
 # -----------------------------------------------------------------------------
-# WebSocket listener — used by the browser dashboard
-# Port: 9001  |  Bound to: localhost ONLY
+# WebSocket listener — used by the browser dashboard (ws://localhost:9001)
+# Port: 9001  |  Bound to: 127.0.0.1 ONLY
 # -----------------------------------------------------------------------------
 listener 9001 127.0.0.1
 protocol websockets
 allow_anonymous true
 
 # -----------------------------------------------------------------------------
-# Logging (optional — comment out to silence)
+# Logging (optional — uncomment to enable)
+# mosquitto.log is gitignored so it will never be committed.
 # -----------------------------------------------------------------------------
-# log_dest file /var/log/mosquitto/mosquitto.log
+# log_dest file mosquitto.log
 # log_type error
 # log_type warning

@@ -1,0 +1,44 @@
+# Gitleaks configuration for Pi-IOT
+#
+# WHY THIS FILE EXISTS
+# --------------------
+# The most sensitive value in this project is a Tuya *local key*: 16 characters
+# of mixed punctuation with no recognisable prefix and unremarkable entropy.
+# Gitleaks' default ruleset does NOT match it — pointing stock gitleaks at a
+# real devices.json returns "no leaks found". Without the rules below, CI would
+# wave through a commit that hands anyone on the LAN full control of the
+# physical hardware.
+#
+# Verify the rules still work after editing:
+#   gitleaks dir smartDevices/CLI_Version/devices.json --redact -v   # must FAIL
+#   gitleaks git --redact -v                                         # must PASS
+
+[extend]
+useDefault = true
+
+# -----------------------------------------------------------------------------
+# Backstop: the credential file itself must never be tracked, whatever it holds.
+# Catches `git add -f devices.json`, which defeats .gitignore.
+# -----------------------------------------------------------------------------
+[[rules]]
+id = "tuya-devices-json-committed"
+description = "devices.json is committed — it holds Tuya local keys and must stay gitignored"
+path = '''(^|/)devices\.json$'''
+tags = ["tuya", "iot", "credentials"]
+
+# -----------------------------------------------------------------------------
+# Content rule: a "key" field holding exactly 16 characters is a Tuya local key.
+# Placeholders (TUYA_LOCAL_KEY_HERE, 19 chars) are the wrong length, so docs and
+# devices.example.json pass without needing an allowlist.
+# -----------------------------------------------------------------------------
+[[rules]]
+id = "tuya-local-key"
+description = "Tuya device local key — grants full LAN control of the physical device"
+regex = '''(?i)"(?:local_)?key"\s*:\s*"[^"]{16}"'''
+tags = ["tuya", "iot", "device-key"]
+
+  [rules.allowlist]
+  regexTarget = "match"
+  regexes = [
+    '''(?i)(TUYA_LOCAL_KEY_HERE|YOUR_LOCAL_KEY|PASTE_.*_HERE|XXXX)''',
+  ]

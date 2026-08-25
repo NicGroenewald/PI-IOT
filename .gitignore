@@ -99,8 +99,11 @@ desktop.ini
 *.lck
 
 # ------------------------------
-# MQTT/Mosquitto persistence
+# MQTT/Mosquitto runtime files
 # ------------------------------
 mosquitto.db
+**/mosquitto.db
+mosquitto.log
+**/mosquitto.log
 *.db
 persistence/
